@@ -33,7 +33,15 @@ async function run() {
 
         // rooms related api
         app.get('/rooms', async (req, res) => {
-            const result = await roomsCollection.find().toArray()
+            const shortObj = {}
+            const shortFlied = req.query.shortFlied
+            const shortOrder = req.query.shortOrder
+            // console.log(req.query)
+
+            if (shortFlied && shortOrder) {
+                shortObj[shortFlied] = shortOrder
+            }
+            const result = await roomsCollection.find().sort(shortObj).toArray()
             res.send(result)
         })
 
