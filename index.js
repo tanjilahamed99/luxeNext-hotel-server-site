@@ -93,15 +93,36 @@ async function run() {
             const filter = { roomType: roomType }
             const updateDoc = {
                 $set: {
-
                     available: true
                 },
             }
-            console.log(updateDoc, filter)
             const result = await roomsCollection.updateOne(filter, updateDoc)
             res.send(result)
         })
 
+
+        app.get('/updateDate/:id', async (req, res) => {
+            const id = req.params.id
+            const query = { _id: new ObjectId(id) }
+            const result = await bookingsRoomCollection.find(query).toArray()
+            res.send(result)
+        })
+
+        app.post('/updateDate', async (req, res) => {
+            const checkIn = req.body.checkIn
+            const checkOut = req.body.checkOut
+            const id = req.body._id
+
+            const query = { _id: new ObjectId(id) }
+            const updateDoc = {
+                $set: {
+                    checkIn: checkIn,
+                    checkOut: checkOut
+                }
+            }
+            const result = await bookingsRoomCollection.updateOne(query, updateDoc)
+            res.send(result)
+        })
 
 
         // Send a ping to confirm a successful connection
