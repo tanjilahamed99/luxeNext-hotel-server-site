@@ -60,19 +60,47 @@ async function run() {
         })
 
         app.put('/updateRoom', async (req, res) => {
-            const updateRoom = req.body
             const id = req.body._id
+            const available = req.body.available
             const filter = { _id: new ObjectId(id) }
             const options = { upsert: true };
             const updateDoc = {
                 $set: {
-                    available: false
+                    available: available
                 },
             };
             const result = await roomsCollection.updateOne(filter, updateDoc, options)
             res.send(result)
+            // console.log(available)
         })
 
+        app.get('/roomBooking', async (req, res) => {
+            const email = req.query.email
+            const query = { email: email }
+            const result = await bookingsRoomCollection.find(query).toArray()
+            res.send(result)
+        })
+
+        app.delete('/roomBooking/:id', async (req, res) => {
+            const id = req.params.id
+            const query = { _id: new ObjectId(id) }
+            const result = await bookingsRoomCollection.deleteOne(query)
+            res.send(result)
+        })
+
+        app.put('/delateUpdate', async (req, res) => {
+            const roomType = req.body.roomType
+            const filter = { roomType: roomType }
+            const updateDoc = {
+                $set: {
+
+                    available: true
+                },
+            }
+            console.log(updateDoc, filter)
+            const result = await roomsCollection.updateOne(filter, updateDoc)
+            res.send(result)
+        })
 
 
 
