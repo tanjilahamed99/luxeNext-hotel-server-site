@@ -32,6 +32,16 @@ async function run() {
         const roomsCollection = database.collection("rooms");
         const bookingsRoomCollection = database.collection("bookingsRoom");
 
+        // jwt token related api
+
+        app.post('/jwt', async (req, res) => {
+        
+            const token = 
+
+        })
+
+
+
         // rooms related api
         app.get('/rooms', async (req, res) => {
             const shortFlied = req.query.shortFlied
