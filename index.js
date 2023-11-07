@@ -56,6 +56,7 @@ async function run() {
         const database = client.db("luxenest");
         const roomsCollection = database.collection("rooms");
         const bookingsRoomCollection = database.collection("bookingsRoom");
+        const reviewCollection = database.collection("review");
 
         // jwt token related api
 
@@ -80,9 +81,14 @@ async function run() {
 
         // rooms related api
         app.get('/rooms', async (req, res) => {
+
+            const body = req.body
+
             const shortFlied = req.query.shortFlied
             const shortOrder = req.query.shortOrder
+
             const shortObj = {}
+
             if (shortFlied && shortOrder) {
                 shortObj[shortFlied] = shortOrder
             }
@@ -117,7 +123,6 @@ async function run() {
             };
             const result = await roomsCollection.updateOne(filter, updateDoc, options)
             res.send(result)
-            // console.log(available)
         })
 
         app.get('/roomBooking', verifyToken, async (req, res) => {
@@ -173,6 +178,23 @@ async function run() {
             const result = await bookingsRoomCollection.updateOne(query, updateDoc)
             res.send(result)
         })
+
+
+        //review
+
+        app.post('/review', async (req, res) => {
+            const reviewData = req.body
+            const result = await reviewCollection.insertOne(reviewData)
+            res.send(result)
+        })
+
+        app.get('/review', async (req, res) => {
+            const roomType = req.query.roomType
+            const query = { roomType: roomType }
+            const result = await reviewCollection.find(query).toArray()
+            res.send(result)
+        })
+
 
 
         // Send a ping to confirm a successful connection
