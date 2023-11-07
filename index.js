@@ -2,15 +2,40 @@ const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 const express = require('express')
 const app = express()
 const cors = require('cors')
+const jwt = require('jsonwebtoken');
+const cookieParser = require('cookie-parser')
 require('dotenv').config()
 const port = process.env.PORT || 5000
 
 app.use(express.json())
-app.use(cors())
+app.use(cors({
+    origin: ['http://localhost:5173'],
+    credentials: true
+}))
+app.use(cookieParser())
 
 app.get('/', (req, res) => {
     res.send('hello every one')
 })
+
+// / middle were
+const verifyToken = async (req, res, next) => {
+
+    const token = req.cookies.token
+
+    if (!token) {
+        return res.status(401).send({ message: 'unauthorized' })
+    }
+
+    jwt.verify(token, process.env.TOKEN_SECRET, (err, decoded) => {
+        if (err) {
+            return res.status(401).send({ message: 'forbidden' })
+        }
+        req.user = decoded
+        next()
+    })
+
+}
 
 
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.8mn4lkn.mongodb.net/?retryWrites=true&w=majority`;
@@ -35,9 +60,20 @@ async function run() {
         // jwt token related api
 
         app.post('/jwt', async (req, res) => {
-        
-            const token = 
+            const email = req.body
+            const token = jwt.sign(email, process.env.TOKEN_SECRET, { expiresIn: '1h' })
+            res
+                .cookie('token', token, {
+                    httpOnly: true,
+                    secure: false
+                })
+                .send({ success: true })
+        })
 
+        app.post('/logout', (req, res) => {
+            res
+                .clearCookie('token', { maxAge: 0 })
+                .send({ logout: true })
         })
 
 
@@ -84,8 +120,12 @@ async function run() {
             // console.log(available)
         })
 
-        app.get('/roomBooking', async (req, res) => {
+        app.get('/roomBooking', verifyToken, async (req, res) => {
+            const tokenEmail = req.user
             const email = req.query.email
+            if (tokenEmail === email) {
+                return res.status(401).send({ message: 'forbidden' })
+            }
             const query = { email: email }
             const result = await bookingsRoomCollection.find(query).toArray()
             res.send(result)
