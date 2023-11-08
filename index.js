@@ -9,7 +9,10 @@ const port = process.env.PORT || 5000
 
 app.use(express.json())
 app.use(cors({
-    origin: ['http://localhost:5173'],
+    origin: [
+        'https://luxenest-hotel.web.app',
+        'https://luxenest-hotel.firebaseapp.com'
+    ],
     credentials: true
 }))
 app.use(cookieParser())
@@ -20,13 +23,10 @@ app.get('/', (req, res) => {
 
 // / middle were
 const verifyToken = async (req, res, next) => {
-
     const token = req.cookies.token
-
     if (!token) {
         return res.status(401).send({ message: 'unauthorized' })
     }
-
     jwt.verify(token, process.env.TOKEN_SECRET, (err, decoded) => {
         if (err) {
             return res.status(401).send({ message: 'forbidden' })
@@ -66,9 +66,10 @@ async function run() {
             res
                 .cookie('token', token, {
                     httpOnly: true,
-                    secure: false
+                    secure: true,
+                    sameSite:false
                 })
-                .send({ success: true })
+                .send({success: true})
         })
 
         app.post('/logout', (req, res) => {
@@ -128,12 +129,15 @@ async function run() {
             res.send(result)
         })
 
-        app.get('/roomBooking', verifyToken, async (req, res) => {
-            const tokenEmail = req.user
+        app.get('/roomBooking', async (req, res) => {
+            // const tokenEmail = req.user
             const email = req.query.email
-            if (tokenEmail === email) {
-                return res.status(401).send({ message: 'forbidden' })
-            }
+
+            // console.log(tokenEmail,email)
+
+            // if (tokenEmail === email) {
+            //     return res.status(401).send({ message: 'forbidden' })
+            // }
             const query = { email: email }
             const result = await bookingsRoomCollection.find(query).toArray()
             res.send(result)
