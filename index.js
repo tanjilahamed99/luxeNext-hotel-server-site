@@ -87,12 +87,15 @@ async function run() {
             const shortFlied = req.query.shortFlied
             const shortOrder = req.query.shortOrder
 
+            console.log()
+
             const shortObj = {}
 
-            if (shortFlied && shortOrder) {
+            if (shortFlied !== 'undefined' && shortOrder !== 'undefined') {
                 shortObj[shortFlied] = shortOrder
+                console.log('ase')
             }
-            const result = await roomsCollection.find().sort().toArray()
+            const result = await roomsCollection.find().sort(shortObj).toArray()
             res.send(result)
         })
 
