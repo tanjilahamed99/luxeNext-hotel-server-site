@@ -24,11 +24,13 @@ app.get('/', (req, res) => {
 // / middle were
 const verifyToken = async (req, res, next) => {
     const token = req.cookies.token
+
     if (!token) {
         return res.status(401).send({ message: 'unauthorized' })
     }
     jwt.verify(token, process.env.TOKEN_SECRET, (err, decoded) => {
         if (err) {
+            console.log('ser')
             return res.status(401).send({ message: 'forbidden' })
         }
         req.user = decoded
@@ -52,7 +54,7 @@ const client = new MongoClient(uri, {
 async function run() {
     try {
         // Connect the client to the server	(optional starting in v4.7)
-        await client.connect();
+        // await client.connect();
         const database = client.db("luxenest");
         const roomsCollection = database.collection("rooms");
         const bookingsRoomCollection = database.collection("bookingsRoom");
@@ -67,15 +69,13 @@ async function run() {
                 .cookie('token', token, {
                     httpOnly: true,
                     secure: true,
-                    sameSite:false
+                    sameSite: 'none'
                 })
-                .send({success: true})
+                .send({ success: true })
         })
 
         app.post('/logout', (req, res) => {
-            res
-                .clearCookie('token', { maxAge: 0 })
-                .send({ logout: true })
+            res.clearCookie('token', { maxAge: 0 }).send({ logout: true })
         })
 
 
@@ -87,8 +87,6 @@ async function run() {
 
             const shortFlied = req.query.shortFlied
             const shortOrder = req.query.shortOrder
-
-            console.log()
 
             const shortObj = {}
 
@@ -129,15 +127,15 @@ async function run() {
             res.send(result)
         })
 
-        app.get('/roomBooking', async (req, res) => {
-            // const tokenEmail = req.user
+        app.get('/roomBooking',verifyToken, async (req, res) => {
+            const tokenEmail = req.user.email
             const email = req.query.email
 
-            // console.log(tokenEmail,email)
+            console.log(tokenEmail)
 
-            // if (tokenEmail === email) {
-            //     return res.status(401).send({ message: 'forbidden' })
-            // }
+            if (tokenEmail !== email) {
+                return res.status(401).send({ message: 'forbidden' })
+            }
             const query = { email: email }
             const result = await bookingsRoomCollection.find(query).toArray()
             res.send(result)
