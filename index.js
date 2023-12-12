@@ -10,8 +10,9 @@ const port = process.env.PORT || 5000
 app.use(express.json())
 app.use(cors({
     origin: [
-        'https://luxenest-hotel.web.app',
-        'https://luxenest-hotel.firebaseapp.com'
+        // 'https://luxenest-hotel.web.app',
+        // 'https://luxenest-hotel.firebaseapp.com'
+        'http://localhost:5173'
     ],
     credentials: true
 }))
@@ -59,9 +60,18 @@ async function run() {
         const roomsCollection = database.collection("rooms");
         const bookingsRoomCollection = database.collection("bookingsRoom");
         const reviewCollection = database.collection("review");
+        const newsLatterCollection = database.collection("newsLatter");
+
+
+        // newsLatter
+        app.post('/newLatter', async (req, res) => {
+            const newData = req.body
+            const result = await newsLatterCollection.insertOne(newData)
+            res.send(result)
+        })
+
 
         // jwt token related api
-
         app.post('/jwt', async (req, res) => {
             const email = req.body
             const token = jwt.sign(email, process.env.TOKEN_SECRET, { expiresIn: '1h' })
@@ -127,7 +137,7 @@ async function run() {
             res.send(result)
         })
 
-        app.get('/roomBooking',verifyToken, async (req, res) => {
+        app.get('/roomBooking', verifyToken, async (req, res) => {
             const tokenEmail = req.user.email
             const email = req.query.email
 
